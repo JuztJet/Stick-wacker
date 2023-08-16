@@ -229,7 +229,7 @@ while running == True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    #print(player1.attack_time)
+
     speed = 1000
     dt = clock.tick(50) / 1000
     sky.blit_Nat_Obj()
