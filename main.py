@@ -237,4 +237,3 @@ while running == True:
     player1.update()
     player2.update()
     pygame.display.update()
-    #print(clock.get_fps())
