@@ -8,16 +8,53 @@ pygame.init()
 # Getting width and height of window
 w, h = pygame.display.get_desktop_sizes()[0]
 #w, h = 1300, 700
+icon_image = pygame.image.load("Assets\Stick-Man\Stick Image.png")
+pygame.display.set_icon(icon_image)
+pygame.display.set_caption("Stick-Wacker", "Stick Or is it?")
 screen = pygame.display.set_mode((w, h))
-screen.fill("White")
+screen.fill("#38B6FF")
+print("Dont hit people with sticks")
 clock = pygame.time.Clock()
 running = True
+reset = False
+play = False
 player_font = pygame.font.Font('Assets/RobotoMono-Bold.ttf', 20)
+score_numbers = [0, 0]
+
+logo_images = [pygame.image.load(image) for image in [
+    'Assets/Start Up/Logo1.png',
+    'Assets/Start Up/Logo2.png'
+]]
+
+play_image = pygame.image.load("Assets\Start Up\Play.png")
+logo_images_rect = [image.get_rect(center=(w / 2, h * 0.35)) for image in logo_images]
+play_image_rect = play_image.get_rect(center=(w / 2, h * .8))
+logo_tick = 0
+logo_frame = 0
+
+
+def start_screen(logo_frame, logo_tick, play):
+    if logo_frame == 2:
+        logo_frame, logo_tick = 0, 0
+    screen.blit(logo_images[logo_frame], logo_images_rect[logo_frame])
+    screen.blit(play_image, play_image_rect)
+    logo_frame = logo_tick // 50
+
+    logo_tick += 1
+    if pygame.mouse.get_pressed() == (True, False, False):
+        if play_image_rect.collidepoint(pygame.mouse.get_pos()):
+            play = True
+
+    return logo_tick, logo_frame, play
+    pass
 
 
 class Players(pygame.sprite.Sprite):
+    score = player_font.render('{}-{}'.format(score_numbers[0], score_numbers[1]), True, "Black")
+    score_rect = score.get_rect(center=(w / 2, h * .9))
 
     def __init__(self, name, pos):
+
         super().__init__()
         self.name = name
         self.walking_frame_num = 0
@@ -132,10 +169,10 @@ class Players(pygame.sprite.Sprite):
             self.control["jumped"] = True
             self.move2("jump")
 
-        if self.rect.x <= -250:
+        if self.rect.x <= -160:
             self.rect.x = w + 140
         elif self.rect.x >= w + 140:
-            self.rect.x = -250
+            self.rect.x = -160
 
     def move2(self, control):
         direction = pygame.Vector2()
@@ -197,7 +234,7 @@ class Players(pygame.sprite.Sprite):
                         (self.rect.left, self.rect.y - 75),
                         (100, 20))
                     self.text_health_control['player_health_bar_rect'].update((self.rect.left, self.rect.y - 75), (
-                    self.text_health_control['player_health_level'], 20))
+                        self.text_health_control['player_health_level'], 20))
 
 
                 else:
@@ -246,8 +283,7 @@ class Players(pygame.sprite.Sprite):
                                                                                   'player_health_level'], 20))
 
             self.walking_tick -= 1
-        if player1.rect.colliderect(player2.rect):
-            print(2)
+
 
     def attack(self):
         if self.attack_frame_num == 5:
@@ -268,18 +304,23 @@ class Players(pygame.sprite.Sprite):
     def damage(self):
 
         if self.name == "Player 1":
-            if player1.rect.colliderect(player2.rect) or player1.control['facing_right'] and (player1.rect.right == player2.rect.left) or player1.control['facing_right']==False and (player1.rect.left == player2.rect.right):
+            if player1.rect.colliderect(player2.rect) or player1.control['facing_right'] and (
+                    player1.rect.right == player2.rect.left) or player1.control['facing_right'] == False and (
+                    player1.rect.left == player2.rect.right):
                 player2.text_health_control['player_health_level'] -= 20
                 if player2.control['facing_right']:
-                    player2.text_health_control['player_health_bar_rect'].update((player2.rect.x, player2.rect.y - 75), (
-                        player2.text_health_control['player_health_level'], 20))
+                    player2.text_health_control['player_health_bar_rect'].update((player2.rect.x, player2.rect.y - 75),
+                                                                                 (
+                                                                                     player2.text_health_control[
+                                                                                         'player_health_level'], 20))
                 else:
                     player2.text_health_control['player_health_bar_rect'].update(
                         (player2.rect.right - 100, player2.rect.y - 75), (
                             player2.text_health_control['player_health_level'], 20))
 
-        elif player1.rect.colliderect(player2.rect) or player2.control['facing_right'] and (player2.rect.right == player1.rect.left) or player2.control['facing_right']==False and (player2.rect.left == player1.rect.right):
-
+        elif player1.rect.colliderect(player2.rect) or player2.control['facing_right'] and (
+                player2.rect.right == player1.rect.left) or player2.control['facing_right'] == False and (
+                player2.rect.left == player1.rect.right):
 
             player1.text_health_control['player_health_level'] -= 20
             if player1.control['facing_right']:
@@ -290,6 +331,32 @@ class Players(pygame.sprite.Sprite):
                     (player1.rect.right - 100, player1.rect.y - 75), (
                         player1.text_health_control['player_health_level'], 20))
 
+    def health_detection(self, reset):
+
+        if player1.text_health_control['player_health_level'] == 0:
+            score_numbers[0] += 1
+            Players.score = player_font.render('{}-{}'.format(int(score_numbers[0]), int(score_numbers[1])), True,
+                                               "Black")
+            sky.blit_Nat_Obj()
+            grass.blit_Nat_Obj()
+            screen.blit(Players.score, Players.score_rect)
+            pygame.display.update()
+            clock.tick(.5)
+
+            reset = True
+        elif player2.text_health_control['player_health_level'] == 0:
+            score_numbers[1] += .5
+            Players.score = player_font.render('{}-{}'.format(int(score_numbers[0]), int(score_numbers[1])), True,
+                                               "Black")
+            sky.blit_Nat_Obj()
+            grass.blit_Nat_Obj()
+            screen.blit(Players.score, Players.score_rect)
+            pygame.display.update()
+            clock.tick(.5)
+
+            reset = True
+
+        return reset
 
     def blit(self):
         screen.blit(self.image, self.rect)
@@ -298,13 +365,16 @@ class Players(pygame.sprite.Sprite):
         pygame.draw.rect(screen, "red", self.text_health_control['player_health_bar_background_rect'])
         pygame.draw.rect(screen, "green", self.text_health_control['player_health_bar_rect'])
         pygame.draw.rect(screen, "black", self.text_health_control['player_health_bar_outline_rect'], 2)
+        screen.blit(Players.score, Players.score_rect)
 
-    def update(self):
+    def update(self, reset):
         self.blit()
 
         self.gravity()
         self.move1()
         self.collision_blocker()
+        reset = self.health_detection(reset)
+        return reset
 
 
 class NaturalObjects:
@@ -324,19 +394,28 @@ class NaturalObjects:
 
 sky = NaturalObjects("Sky", w, h, (0, 0), 'Assets/Natural Objects/sky.JPG')
 grass = NaturalObjects("Grass", w, h, (0, h * 0.8), 'Assets/Natural Objects/grass.png')
-player1 = Players("Player 1", (w * .03, h * 0.8-2))
-player2 = Players("Player 2", (w * .97, h * 0.8-2))
+player1 = Players("Player 1", (w * .03, h * 0.8 - 2))
+player2 = Players("Player 2", (w * .97, h * 0.8 - 2))
 
 while running:
     pygame.event.set_allowed([pygame.QUIT])
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+    if reset:
+        player1 = Players("Player 1", (w * .03, h * 0.8 - 2))
+        player2 = Players("Player 2", (w * .97, h * 0.8 - 2))
+        reset = False
 
     speed = 1000
     dt = clock.tick(50) / 1000
-    sky.blit_Nat_Obj()
-    grass.blit_Nat_Obj()
-    player1.update()
-    player2.update()
+    if play:
+        sky.blit_Nat_Obj()
+        grass.blit_Nat_Obj()
+        reset=player1.update(reset)
+        reset=player2.update(reset)
+        pygame.mouse.set_visible(False)
+    else:
+        logo_tick, logo_frame, play = start_screen(logo_frame, logo_tick, play)
+
     pygame.display.update()
