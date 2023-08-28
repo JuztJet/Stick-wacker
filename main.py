@@ -7,7 +7,8 @@ pygame.init()
 
 # Getting width and height of window
 w, h = pygame.display.get_desktop_sizes()[0]
-#w, h = 700, 400
+# w, h = 700, 400
+start_time = 0
 icon_image = pygame.image.load("Assets\Stick-Man\Stick Image.png")
 pygame.display.set_icon(icon_image)
 pygame.display.set_caption("Stick-Wacker", "Stick Or is it?")
@@ -18,35 +19,125 @@ clock = pygame.time.Clock()
 running = True
 reset = False
 play = False
-player_font = pygame.font.Font('Assets/RobotoMono-Bold.ttf', int(w*0.013))
+start_screen_on = True
+char_options_on = False
+player_font = pygame.font.Font('Assets/RobotoMono-Bold.ttf', int(w * 0.013))
 score_numbers = [0, 0]
+colours = ["Red", "Orange", "Yellow", "Green", 'Blue', 'Indigo', 'Violet']
+logo_images = [pygame.transform.smoothscale(pygame.image.load(image).convert_alpha(), (int(w * 0.226), int(h * 0.376)))
+               for image in [
+                   'Assets/Start Up/Logo1.png',
+                   'Assets/Start Up/Logo2.png'
+               ]]
 
-logo_images = [pygame.transform.smoothscale(pygame.image.load(image).convert_alpha(), (int(w*0.326), int(h*0.576))) for image in [
-    'Assets/Start Up/Logo1.png',
-    'Assets/Start Up/Logo2.png'
-]]
-
-play_image = pygame.transform.smoothscale(pygame.image.load("Assets\Start Up\Play.png"), (int(0.207*w), int(0.1689*h)))
-logo_images_rect = [image.get_rect(center=(w / 2, h * 0.35)) for image in logo_images]
-play_image_rect = play_image.get_rect(center=(w / 2, h * .8))
+play_image = pygame.transform.smoothscale(pygame.image.load("Assets\Start Up\Play.png"),
+                                          (int(0.130 * w), int(0.1089 * h)))
+leaderboard_image = pygame.transform.smoothscale(pygame.image.load("Assets\Start Up\Leaderboard.png"),
+                                                 (int(0.130 * w), int(0.1089 * h)))
+logo_images_rect = [image.get_rect(center=(w / 2, h * 0.25)) for image in logo_images]
+play_image_rect = play_image.get_rect(center=(w / 2, h * .70))
+leaderboard_image_rect = play_image.get_rect(center=(w / 2, h * .82))
 logo_tick = 0
 logo_frame = 0
 
 
-def start_screen(logo_frame, logo_tick, play):
+def start_screen(logo_frame, logo_tick, play, start_screen_on, char_options_on):
     if logo_frame == 2:
         logo_frame, logo_tick = 0, 0
     screen.blit(logo_images[logo_frame], logo_images_rect[logo_frame])
     screen.blit(play_image, play_image_rect)
+    screen.blit(leaderboard_image, leaderboard_image_rect)
     logo_frame = logo_tick // 50
 
     logo_tick += 1
     if pygame.mouse.get_pressed() == (True, False, False):
         if play_image_rect.collidepoint(pygame.mouse.get_pos()):
             play = True
+        elif leaderboard_image_rect.collidepoint(pygame.mouse.get_pos()):
+            start_screen_on = False
+            char_options_on = True
+    return logo_tick, logo_frame, play, start_screen_on, char_options_on
 
-    return logo_tick, logo_frame, play
-    pass
+
+player_with_stick_image = pygame.transform.smoothscale(
+    pygame.image.load("Assets/Stick-Man/Stick-Man-With-Stick.png").convert_alpha(),
+    (1.5 * (w * 0.1158), 1.5 * (h * 0.2604)))
+reverse_player_with_stick_image = pygame.transform.flip(player_with_stick_image, True, False)
+player_without_stick_image = pygame.transform.smoothscale(
+    pygame.image.load("Assets/Stick-Man/Stick-Man-No-Stick.png").convert_alpha(),
+    (1.5 * (w * 0.1158), 1.5 * (h * 0.2604)))
+reverse_player_without_stick_image = pygame.transform.flip(player_without_stick_image, True, False)
+player1_colour = 0
+fake_player_rect = player_with_stick_image.get_rect(center=(w * 0.15, h / 2))
+fake_reverse_player_rect = player_with_stick_image.get_rect(center=(w * 0.85, h / 2))
+player_rect = player_without_stick_image.get_rect(center=(w * 0.15, h / 2))
+reverse_player_rect = player_without_stick_image.get_rect(center=(w * 0.85, h / 2))
+
+
+def char_options(player1_colour):
+    global start_time
+    screen.fill("#38B6FF")
+    # test = pygame.PixelArray(player_without_stick_image)
+    # blue = "Green"
+    # tree = "yellow"
+    # test.replace((0, 0, 0), (0, 255, 0))
+    # test.close()
+
+    # player_without_stick_image.fill("Blue", fake_player_rect)
+    screen.blit(player_with_stick_image, fake_player_rect)
+    screen.blit(reverse_player_with_stick_image, fake_reverse_player_rect)
+    screen.blit(player_without_stick_image, player_rect)
+    screen.blit(reverse_player_without_stick_image, reverse_player_rect)
+    player_1_right_button = pygame.draw.polygon(screen, "White", [
+        (player_rect.x + player_rect.width + w * 0.02, player_rect.centery - h * 0.02),
+        (player_rect.x + player_rect.width + w * 0.04, player_rect.centery),
+        (player_rect.x + player_rect.width + w * 0.02, player_rect.centery + h * 0.02)])
+    player_1_left_button = pygame.draw.polygon(screen, "White",
+                                               [(player_rect.x - w * 0.02, player_rect.centery - h * 0.02),
+                                                (player_rect.x - w * 0.04, player_rect.centery),
+                                                (player_rect.x - w * 0.02, player_rect.centery + h * 0.02)])
+
+    player_2_right_button = pygame.draw.polygon(screen, "White", [
+        (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery - h * 0.02),
+        (reverse_player_rect.x + reverse_player_rect.width + w * 0.04, reverse_player_rect.centery),
+        (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery + h * 0.02)])
+    player_2_left_button = pygame.draw.polygon(screen, "White",
+                                               [(reverse_player_rect.x - w * 0.02,
+                                                 reverse_player_rect.centery - h * 0.02),
+                                                (reverse_player_rect.x - w * 0.04, reverse_player_rect.centery),
+                                                (reverse_player_rect.x - w * 0.02,
+                                                 reverse_player_rect.centery + h * 0.02)])
+    #player_without_stick_image.fill("black", special_flags=pygame.BLEND_RGB_ADD)
+    if pygame.mouse.get_pressed() == (True, False, False):
+        if player_1_right_button.collidepoint(pygame.mouse.get_pos()) and pygame.time.get_ticks() >= start_time + 500:
+            start_time = pygame.time.get_ticks()
+            player_1_right_button = pygame.draw.polygon(screen, "Blue", [
+                (player_rect.x + player_rect.width + w * 0.02, player_rect.centery - h * 0.02),
+                (player_rect.x + player_rect.width + w * 0.04, player_rect.centery),
+                (player_rect.x + player_rect.width + w * 0.02, player_rect.centery + h * 0.02)])
+            player1_colour += 1
+
+            player_without_stick_image.fill(colours[player1_colour], special_flags=pygame.BLEND_RGB_ADD)
+
+        elif player_1_left_button.collidepoint(pygame.mouse.get_pos()):
+            player_1_left_button = pygame.draw.polygon(screen, "Blue",
+                                                       [(player_rect.x - w * 0.02, player_rect.centery - h * 0.02),
+                                                        (player_rect.x - w * 0.04, player_rect.centery),
+                                                        (player_rect.x - w * 0.02, player_rect.centery + h * 0.02)])
+        elif player_2_right_button.collidepoint(pygame.mouse.get_pos()):
+            player_2_right_button = pygame.draw.polygon(screen, "Blue", [
+                (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery - h * 0.02),
+                (reverse_player_rect.x + reverse_player_rect.width + w * 0.04, reverse_player_rect.centery),
+                (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery + h * 0.02)])
+        elif player_2_left_button.collidepoint(pygame.mouse.get_pos()):
+            player_2_left_button = pygame.draw.polygon(screen, "Blue",
+                                                       [(reverse_player_rect.x - w * 0.02,
+                                                         reverse_player_rect.centery - h * 0.02),
+                                                        (reverse_player_rect.x - w * 0.04, reverse_player_rect.centery),
+                                                        (reverse_player_rect.x - w * 0.02,
+                                                         reverse_player_rect.centery + h * 0.02)])
+
+    return player1_colour
 
 
 class Players(pygame.sprite.Sprite):
@@ -96,7 +187,7 @@ class Players(pygame.sprite.Sprite):
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img4.png',
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img5.png']]
 
-        self.player_text = player_font.render(self.name, False, "Blue")
+        self.player_text = player_font.render(self.name, False, "#abdbe3")
         self.attack_time = 0
         if self.name == "Player 1":
             self.image = self.walking_frames[self.walking_frame_num]
@@ -111,12 +202,15 @@ class Players(pygame.sprite.Sprite):
                 'facing_right': True
             }
             self.text_health_control = {
-                'player_health_level': int(w*0.065),
+                'player_health_level': int(w * 0.065),
                 "player_text": self.player_text,
-                "player_text_rect": self.player_text.get_rect(topleft=(self.rect.x, int(self.rect.y - h*0.115))),
-                "player_health_bar_rect": pygame.Rect((self.rect.x, int(self.rect.y - h*0.08)), (int(w*0.0651), int(h*0.023))),
-                "player_health_bar_background_rect": pygame.Rect((self.rect.x, int(self.rect.y - h*0.08)), (int(w*0.065), int(h*0.023))),
-                "player_health_bar_outline_rect": pygame.Rect((self.rect.x, int(self.rect.y - h*0.08)), (int(w*0.065), int(h*0.023)))
+                "player_text_rect": self.player_text.get_rect(topleft=(self.rect.x, int(self.rect.y - h * 0.115))),
+                "player_health_bar_rect": pygame.Rect((self.rect.x, int(self.rect.y - h * 0.08)),
+                                                      (int(w * 0.0651), int(h * 0.023))),
+                "player_health_bar_background_rect": pygame.Rect((self.rect.x, int(self.rect.y - h * 0.08)),
+                                                                 (int(w * 0.065), int(h * 0.023))),
+                "player_health_bar_outline_rect": pygame.Rect((self.rect.x, int(self.rect.y - h * 0.08)),
+                                                              (int(w * 0.065), int(h * 0.023)))
             }
         if self.name == "Player 2":
             self.image = self.reverse_walking_frames[self.walking_frame_num]
@@ -131,24 +225,27 @@ class Players(pygame.sprite.Sprite):
                 'facing_right': False
             }
             self.text_health_control = {
-                'player_health_level': int(w*0.065),
+                'player_health_level': int(w * 0.065),
                 "player_text": self.player_text,
-                "player_text_rect": self.player_text.get_rect(topright=(self.rect.right, self.rect.y - int(h*0.115))),
-                "player_health_bar_rect": pygame.Rect((self.rect.right - int(w*0.065), self.rect.y - int(h*0.081)), (int(w*0.065), int(h*0.023))),
-                "player_health_bar_background_rect": pygame.Rect((self.rect.right - int(w*0.065), self.rect.y - int(h*0.081)), (int(w*0.065), int(h*0.023))),
-                "player_health_bar_outline_rect": pygame.Rect((self.rect.right - int(w*0.065), self.rect.y - int(h*0.081)), (int(w*0.065), int(h*0.023)))
+                "player_text_rect": self.player_text.get_rect(topright=(self.rect.right, self.rect.y - int(h * 0.115))),
+                "player_health_bar_rect": pygame.Rect((self.rect.right - int(w * 0.065), self.rect.y - int(h * 0.081)),
+                                                      (int(w * 0.065), int(h * 0.023))),
+                "player_health_bar_background_rect": pygame.Rect(
+                    (self.rect.right - int(w * 0.065), self.rect.y - int(h * 0.081)), (int(w * 0.065), int(h * 0.023))),
+                "player_health_bar_outline_rect": pygame.Rect(
+                    (self.rect.right - int(w * 0.065), self.rect.y - int(h * 0.081)), (int(w * 0.065), int(h * 0.023)))
 
             }
 
     def gravity(self):
-        gravity = .5
+        gravity = 0.00057 * h
         if self.rect.y < h * 0.58:
             pass
             self.rect.y += (gravity * speed * dt)
-            self.text_health_control['player_text_rect'].y += (gravity * speed * dt)
-            self.text_health_control['player_health_bar_rect'].y += (gravity * speed * dt)
-            self.text_health_control['player_health_bar_background_rect'].y += (gravity * speed * dt)
-            self.text_health_control['player_health_bar_outline_rect'].y += (gravity * speed * dt)
+            self.text_health_control['player_text_rect'].y = self.rect.y - int(h * 0.115)
+            self.text_health_control['player_health_bar_rect'].y = self.rect.y - int(h * 0.081)
+            self.text_health_control['player_health_bar_background_rect'].y = self.rect.y - int(h * 0.081)
+            self.text_health_control['player_health_bar_outline_rect'].y = self.rect.y - int(h * 0.081)
         else:
             self.control["jumped"] = False
             self.rect.y = h * 0.59
@@ -174,7 +271,7 @@ class Players(pygame.sprite.Sprite):
         elif self.rect.x >= w + 140:
             self.rect.x = -160
 
-    def move2(self, control):#Fix
+    def move2(self, control):
         direction = pygame.Vector2()
 
         if self.walking_frame_num == 5:
@@ -185,108 +282,69 @@ class Players(pygame.sprite.Sprite):
 
             self.image = self.walking_frames[self.walking_frame_num]
             direction.x += 1
-            self.text_health_control['player_text_rect'].x = self.rect.x
-            self.text_health_control['player_text_rect'].update((self.rect.x, int(self.rect.y - h*0.12152)), (self.player_text.get_width(), self.player_text.get_height()))
-            # self.text_health_control['player_text_rect'].y = int(self.rect.y - h*0.12152)
-
-                # topleft=(self.rect.left + 105, int(self.rect.y - h*0.12152)))
-            self.text_health_control['player_health_bar_outline_rect'].update((self.rect.x, self.rect.y - int(h*0.086)),
-                                                                              (int(w*0.065), int(h*0.023)))
-            self.text_health_control['player_health_bar_background_rect'].update((self.rect.x, self.rect.y - int(h*0.086)),
-                                                                                 (int(w*0.065), int(h*0.023)))
-            self.text_health_control['player_health_bar_rect'].update((self.rect.x, self.rect.y - int(h*0.086)), (
-                self.text_health_control['player_health_level'], int(h*0.023)))
+            self.rect.move_ip(speed * dt * direction)
+            self.text_health_control['player_text_rect'].left = self.rect.left
+            self.text_health_control['player_health_bar_outline_rect'].left = self.rect.left
+            self.text_health_control['player_health_bar_background_rect'].left = self.rect.left
+            self.text_health_control['player_health_bar_rect'].left = self.text_health_control[
+                'player_health_bar_background_rect'].left
         if control == "left":
             self.walking_frame_num = self.walking_tick // 3
 
             self.image = self.reverse_walking_frames[self.walking_frame_num]
             direction.x -= 1
-            self.text_health_control['player_text_rect'] = self.player_text.get_rect(
-                topright=(self.rect.right - 20, self.rect.y - 105))
-            self.text_health_control['player_health_bar_outline_rect'].update((self.rect.right - 100, self.rect.y - 75),
-                                                                              (100, 20))
-            self.text_health_control['player_health_bar_background_rect'].update(
-                (self.rect.right - 100, self.rect.y - 75),
-                (100, 20))
-            self.text_health_control['player_health_bar_rect'].update((self.rect.right - 100, self.rect.y - 75), (
-                self.text_health_control['player_health_level'], 20))
-        self.rect.move_ip(speed * dt * direction)
-        self.text_health_control['player_health_bar_outline_rect'].move_ip(speed * dt * direction)
-        self.text_health_control['player_health_bar_background_rect'].move_ip(speed * dt * direction)
-        self.text_health_control['player_health_bar_rect'].move_ip(speed * dt * direction)
+            self.rect.move_ip(speed * dt * direction)
+            self.text_health_control['player_text_rect'].right = self.rect.right
+            self.text_health_control['player_health_bar_outline_rect'].right = self.rect.right
+            self.text_health_control['player_health_bar_background_rect'].right = self.rect.right
+
+            self.text_health_control['player_health_bar_rect'].left = self.text_health_control[
+                'player_health_bar_background_rect'].left
         self.walking_tick += 1
 
         if control == "jump":
-            self.rect.y -= h*0.55
-            self.text_health_control['player_text_rect'].y -= h*0.55
-            self.text_health_control['player_health_bar_rect'].y -= h*0.55
-            self.text_health_control['player_health_bar_background_rect'].y -= h*0.55
-            self.text_health_control['player_health_bar_outline_rect'].y -= h*0.55
+            self.rect.y -= h * 0.55
+            self.text_health_control['player_text_rect'].y -= h * 0.55
+            self.text_health_control['player_health_bar_rect'].y -= h * 0.55
+            self.text_health_control['player_health_bar_background_rect'].y -= h * 0.55
+            self.text_health_control['player_health_bar_outline_rect'].y -= h * 0.55
 
-    def collision_blocker(self):#Fix
+    def collision_blocker(self):
         if player1.rect.colliderect(player2.rect):
             if self.name == "Player 1":
-                if player1.rect.x <= player2.rect.x:
+                if player1.rect.centerx <= player2.rect.centerx:
                     player1.rect.right = player2.rect.left
-                    self.text_health_control['player_text_rect'] = self.player_text.get_rect(
-                        topleft=(self.rect.left, self.rect.y - 105))
-                    self.text_health_control['player_health_bar_outline_rect'].update(
-                        (self.rect.left, self.rect.y - 75),
-                        (100, 20))
-                    self.text_health_control['player_health_bar_background_rect'].update(
-                        (self.rect.left, self.rect.y - 75),
-                        (100, 20))
-                    self.text_health_control['player_health_bar_rect'].update((self.rect.left, self.rect.y - 75), (
-                        self.text_health_control['player_health_level'], 20))
+                    self.text_health_control['player_text_rect'].left = self.rect.left
+                    self.text_health_control['player_health_bar_outline_rect'].left = self.rect.left
+                    self.text_health_control['player_health_bar_background_rect'].left = self.rect.left
+                    self.text_health_control['player_health_bar_rect'].left = self.text_health_control[
+                        'player_health_bar_background_rect'].left
 
 
                 else:
                     player1.rect.left = player2.rect.right
-                    self.text_health_control['player_text_rect'] = self.player_text.get_rect(
-                        topright=(self.rect.right
-                                  , self.rect.y - 105))
-                    self.text_health_control['player_health_bar_outline_rect'].update(
-                        (self.rect.right - 100, self.rect.y - 75),
-                        (100, 20))
-                    self.text_health_control['player_health_bar_background_rect'].update(
-                        (self.rect.right - 100, self.rect.y - 75),
-                        (100, 20))
-                    self.text_health_control['player_health_bar_rect'].update((self.rect.right - 100, self.rect.y - 75),
-                                                                              (
-                                                                                  self.text_health_control[
-                                                                                      'player_health_level'], 20))
-
+                    self.text_health_control['player_text_rect'].right = self.rect.right
+                    self.text_health_control['player_health_bar_outline_rect'].right = self.rect.right
+                    self.text_health_control['player_health_bar_background_rect'].right = self.rect.right
+                    self.text_health_control['player_health_bar_rect'].left = self.text_health_control[
+                        'player_health_bar_background_rect'].left  # if player 2 x is behind player 1 x
             elif player2.rect.centerx <= player1.rect.centerx:
                 player2.rect.right = player1.rect.left
-                self.text_health_control['player_text_rect'] = self.player_text.get_rect(
-                    topleft=(self.rect.left, self.rect.y - 105))
-                self.text_health_control['player_health_bar_outline_rect'].update(
-                    (self.rect.left, self.rect.y - 75),
-                    (100, 20))
-                self.text_health_control['player_health_bar_background_rect'].update(
-                    (self.rect.left, self.rect.y - 75),
-                    (100, 20))
-                self.text_health_control['player_health_bar_rect'].update((self.rect.left, self.rect.y - 75), (
-                    self.text_health_control['player_health_level'], 20))
+                self.text_health_control['player_text_rect'].left = self.rect.left
+                self.text_health_control['player_health_bar_outline_rect'].left = self.rect.left
+                self.text_health_control['player_health_bar_background_rect'].left = self.rect.left
+                self.text_health_control['player_health_bar_rect'].left = self.text_health_control[
+                    'player_health_bar_background_rect'].left
             else:
                 player2.rect.left = player1.rect.right
 
-                self.text_health_control['player_text_rect'] = self.player_text.get_rect(
-                    topright=(self.rect.right
-                              , self.rect.y - 105))
-                self.text_health_control['player_health_bar_outline_rect'].update(
-                    (self.rect.right - 100, self.rect.y - 75),
-                    (100, 20))
-                self.text_health_control['player_health_bar_background_rect'].update(
-                    (self.rect.right - 100, self.rect.y - 75),
-                    (100, 20))
-                self.text_health_control['player_health_bar_rect'].update((self.rect.right - 100, self.rect.y - 75),
-                                                                          (
-                                                                              self.text_health_control[
-                                                                                  'player_health_level'], 20))
+                self.text_health_control['player_text_rect'].right = self.rect.right
+                self.text_health_control['player_health_bar_outline_rect'].right = self.rect.right
+                self.text_health_control['player_health_bar_background_rect'].right = self.rect.right
 
+                self.text_health_control['player_health_bar_rect'].left = self.text_health_control[
+                    'player_health_bar_background_rect'].left
             self.walking_tick -= 1
-
 
     def attack(self):
         if self.attack_frame_num == 5:
@@ -304,40 +362,39 @@ class Players(pygame.sprite.Sprite):
 
         self.attack_tick += 1
 
-    def damage(self):#Fix
+    def damage(self):
 
         if self.name == "Player 1":
             if player1.rect.colliderect(player2.rect) or player1.control['facing_right'] and (
                     player1.rect.right == player2.rect.left) or player1.control['facing_right'] == False and (
                     player1.rect.left == player2.rect.right):
-                player2.text_health_control['player_health_level'] -= 20
+
+                player2.text_health_control['player_health_bar_rect'].inflate_ip(-(0.011068 * w), 0)
                 if player2.control['facing_right']:
-                    player2.text_health_control['player_health_bar_rect'].update((player2.rect.x, player2.rect.y - 75),
-                                                                                 (
-                                                                                     player2.text_health_control[
-                                                                                         'player_health_level'], 20))
+                    player2.text_health_control['player_health_bar_rect'].left = player2.text_health_control[
+                        'player_health_bar_background_rect'].left
+
+
                 else:
-                    player2.text_health_control['player_health_bar_rect'].update(
-                        (player2.rect.right - 100, player2.rect.y - 75), (
-                            player2.text_health_control['player_health_level'], 20))
+                    player2.text_health_control['player_health_bar_rect'].left = player2.text_health_control[
+                        'player_health_bar_background_rect'].left
 
         elif player1.rect.colliderect(player2.rect) or player2.control['facing_right'] and (
                 player2.rect.right == player1.rect.left) or player2.control['facing_right'] == False and (
                 player2.rect.left == player1.rect.right):
 
-            player1.text_health_control['player_health_level'] -= 20
+            player1.text_health_control['player_health_bar_rect'].inflate_ip(-(0.011068 * w), 0)
             if player1.control['facing_right']:
-                player1.text_health_control['player_health_bar_rect'].update((player1.rect.x, player1.rect.y - 75), (
-                    player1.text_health_control['player_health_level'], 20))
+                player1.text_health_control['player_health_bar_rect'].left = player1.text_health_control[
+                    'player_health_bar_background_rect'].left
             else:
-                player1.text_health_control['player_health_bar_rect'].update(
-                    (player1.rect.right - 100, player1.rect.y - 75), (
-                        player1.text_health_control['player_health_level'], 20))
+                player1.text_health_control['player_health_bar_rect'].left = player1.text_health_control[
+                    'player_health_bar_background_rect'].left
 
     def health_detection(self, reset):
 
-        if player1.text_health_control['player_health_level'] == 0:
-            score_numbers[0] += 1
+        if player2.text_health_control['player_health_bar_rect'].width <= 0:
+            score_numbers[0] += .5
             Players.score = player_font.render('{}-{}'.format(int(score_numbers[0]), int(score_numbers[1])), True,
                                                "Black")
             sky.blit_Nat_Obj()
@@ -347,8 +404,8 @@ class Players(pygame.sprite.Sprite):
             clock.tick(.5)
 
             reset = True
-        elif player2.text_health_control['player_health_level'] == 0:
-            score_numbers[1] += .5
+        elif player1.text_health_control['player_health_bar_rect'].width <= 0:
+            score_numbers[1] += 1
             Players.score = player_font.render('{}-{}'.format(int(score_numbers[0]), int(score_numbers[1])), True,
                                                "Black")
             sky.blit_Nat_Obj()
@@ -367,7 +424,8 @@ class Players(pygame.sprite.Sprite):
         pygame.draw.rect(screen, "blue", self.rect, 1)
         pygame.draw.rect(screen, "red", self.text_health_control['player_health_bar_background_rect'])
         pygame.draw.rect(screen, "green", self.text_health_control['player_health_bar_rect'])
-        pygame.draw.rect(screen, "black", self.text_health_control['player_health_bar_outline_rect'], 2)
+        pygame.draw.rect(screen, "black", self.text_health_control['player_health_bar_outline_rect'],
+                         int(round(0.0023 * h, 0)))
         screen.blit(Players.score, Players.score_rect)
 
     def update(self, reset):
@@ -415,10 +473,13 @@ while running:
     if play:
         sky.blit_Nat_Obj()
         grass.blit_Nat_Obj()
-        reset=player1.update(reset)
-        reset=player2.update(reset)
+        reset = player1.update(reset)
+        reset = player2.update(reset)
         pygame.mouse.set_visible(False)
-    else:
-        logo_tick, logo_frame, play = start_screen(logo_frame, logo_tick, play)
+    elif start_screen_on:
+        logo_tick, logo_frame, play, start_screen_on, char_options_on = start_screen(logo_frame, logo_tick, play,
+                                                                                     start_screen_on, char_options_on)
+    elif char_options_on:
+        player1_colour = char_options(player1_colour)
 
     pygame.display.update()
