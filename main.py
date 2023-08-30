@@ -3,27 +3,40 @@
 # Imports
 import pygame
 
-pygame.init()
+# ---------------------------------------------------------------------------------------------------------------
 
-# Getting width and height of window
+pygame.init()
 w, h = pygame.display.get_desktop_sizes()[0]
 # w, h = 700, 400
-start_time = 0
 icon_image = pygame.image.load("Assets\Stick-Man\Stick Image.png")
 pygame.display.set_icon(icon_image)
 pygame.display.set_caption("Stick-Wacker", "Stick Or is it?")
+
+# ---------------------------------------------------------------------------------------------------------------
+
 screen = pygame.display.set_mode((w, h))
 screen.fill("#38B6FF")
 print("Dont hit people with sticks")
 clock = pygame.time.Clock()
+
+# ---------------------------------------------------------------------------------------------------------------
+
 running = True
 reset = False
 play = False
 start_screen_on = True
 char_options_on = False
-player_font = pygame.font.Font('Assets/RobotoMono-Bold.ttf', int(w * 0.013))
+
+# ---------------------------------------------------------------------------------------------------------------
+
 score_numbers = [0, 0]
-colours = ["Red", "Orange", "Yellow", "Green", 'Blue', 'Indigo', 'Violet']
+logo_tick = 0
+logo_frame = 0
+made = 0
+player_font = pygame.font.Font('Assets/RobotoMono-Bold.ttf', int(w * 0.013))
+
+# ---------------------------------------------------------------------------------------------------------------
+
 logo_images = [pygame.transform.smoothscale(pygame.image.load(image).convert_alpha(), (int(w * 0.226), int(h * 0.376)))
                for image in [
                    'Assets/Start Up/Logo1.png',
@@ -34,11 +47,15 @@ play_image = pygame.transform.smoothscale(pygame.image.load("Assets\Start Up\Pla
                                           (int(0.130 * w), int(0.1089 * h)))
 leaderboard_image = pygame.transform.smoothscale(pygame.image.load("Assets\Start Up\Leaderboard.png"),
                                                  (int(0.130 * w), int(0.1089 * h)))
+
+# ---------------------------------------------------------------------------------------------------------------
+
 logo_images_rect = [image.get_rect(center=(w / 2, h * 0.25)) for image in logo_images]
 play_image_rect = play_image.get_rect(center=(w / 2, h * .70))
 leaderboard_image_rect = play_image.get_rect(center=(w / 2, h * .82))
-logo_tick = 0
-logo_frame = 0
+
+
+# ---------------------------------------------------------------------------------------------------------------
 
 
 def start_screen(logo_frame, logo_tick, play, start_screen_on, char_options_on):
@@ -59,85 +76,92 @@ def start_screen(logo_frame, logo_tick, play, start_screen_on, char_options_on):
     return logo_tick, logo_frame, play, start_screen_on, char_options_on
 
 
-player_with_stick_image = pygame.transform.smoothscale(
-    pygame.image.load("Assets/Stick-Man/Stick-Man-With-Stick.png").convert_alpha(),
-    (1.5 * (w * 0.1158), 1.5 * (h * 0.2604)))
-reverse_player_with_stick_image = pygame.transform.flip(player_with_stick_image, True, False)
-player_without_stick_image = pygame.transform.smoothscale(
-    pygame.image.load("Assets/Stick-Man/Stick-Man-No-Stick.png").convert_alpha(),
-    (1.5 * (w * 0.1158), 1.5 * (h * 0.2604)))
-reverse_player_without_stick_image = pygame.transform.flip(player_without_stick_image, True, False)
-player1_colour = 0
-fake_player_rect = player_with_stick_image.get_rect(center=(w * 0.15, h / 2))
-fake_reverse_player_rect = player_with_stick_image.get_rect(center=(w * 0.85, h / 2))
-player_rect = player_without_stick_image.get_rect(center=(w * 0.15, h / 2))
-reverse_player_rect = player_without_stick_image.get_rect(center=(w * 0.85, h / 2))
-
-
-def char_options(player1_colour):
-    global start_time
+class PlayerCustomisation:
+    colours = ['Black', "Red", "Orange", "Yellow", "Green", 'Blue', 'Indigo', 'Violet', 'White']
     screen.fill("#38B6FF")
-    # test = pygame.PixelArray(player_without_stick_image)
-    # blue = "Green"
-    # tree = "yellow"
-    # test.replace((0, 0, 0), (0, 255, 0))
-    # test.close()
 
-    # player_without_stick_image.fill("Blue", fake_player_rect)
-    screen.blit(player_with_stick_image, fake_player_rect)
-    screen.blit(reverse_player_with_stick_image, fake_reverse_player_rect)
-    screen.blit(player_without_stick_image, player_rect)
-    screen.blit(reverse_player_without_stick_image, reverse_player_rect)
-    player_1_right_button = pygame.draw.polygon(screen, "White", [
-        (player_rect.x + player_rect.width + w * 0.02, player_rect.centery - h * 0.02),
-        (player_rect.x + player_rect.width + w * 0.04, player_rect.centery),
-        (player_rect.x + player_rect.width + w * 0.02, player_rect.centery + h * 0.02)])
-    player_1_left_button = pygame.draw.polygon(screen, "White",
-                                               [(player_rect.x - w * 0.02, player_rect.centery - h * 0.02),
-                                                (player_rect.x - w * 0.04, player_rect.centery),
-                                                (player_rect.x - w * 0.02, player_rect.centery + h * 0.02)])
+    def __init__(self, name):
+        print(2)
+        self.start_time = 0
+        self.player_colour = 0
+        self.name = name
+        self.text = ''
+        if self.name == "Player 1":
+            self.player_image = pygame.transform.smoothscale(
+                pygame.image.load("Assets/Stick-Man/Stick-Man-With-Stick.png").convert_alpha(),
+                (1.5 * (w * 0.1158), 1.5 * (h * 0.2604)))
+            self.fake_player_image = pygame.transform.smoothscale(
+                pygame.image.load("Assets/Stick-Man/Stick-Man-No-Stick.png").convert_alpha(),
+                (1.5 * (w * 0.1158), 1.5 * (h * 0.2604)))
+            self.fake_player_rect = self.fake_player_image.get_rect(center=(w * 0.15, h / 2))
+            self.player_rect = self.player_image.get_rect(center=(w * 0.15, h / 2))
+            self.textbox = pygame.Rect((self.player_rect.x, self.player_rect.y + w*0.1), (50, 50))
+        else:
+            self.player_image = pygame.transform.flip(pygame.transform.smoothscale(
+                pygame.image.load("Assets/Stick-Man/Stick-Man-With-Stick.png").convert_alpha(),
+                (1.5 * (w * 0.1158), 1.5 * (h * 0.2604))), True, False)
+            self.fake_player_image = pygame.transform.flip(pygame.transform.smoothscale(
+                pygame.image.load("Assets/Stick-Man/Stick-Man-No-Stick.png").convert_alpha(),
+                (1.5 * (w * 0.1158), 1.5 * (h * 0.2604))), True, False)
+            self.fake_player_rect = self.fake_player_image.get_rect(center=(w * 0.85, h / 2))
+            self.player_rect = self.player_image.get_rect(center=(w * 0.85, h / 2))
 
-    player_2_right_button = pygame.draw.polygon(screen, "White", [
-        (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery - h * 0.02),
-        (reverse_player_rect.x + reverse_player_rect.width + w * 0.04, reverse_player_rect.centery),
-        (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery + h * 0.02)])
-    player_2_left_button = pygame.draw.polygon(screen, "White",
-                                               [(reverse_player_rect.x - w * 0.02,
-                                                 reverse_player_rect.centery - h * 0.02),
-                                                (reverse_player_rect.x - w * 0.04, reverse_player_rect.centery),
-                                                (reverse_player_rect.x - w * 0.02,
-                                                 reverse_player_rect.centery + h * 0.02)])
-    #player_without_stick_image.fill("black", special_flags=pygame.BLEND_RGB_ADD)
-    if pygame.mouse.get_pressed() == (True, False, False):
-        if player_1_right_button.collidepoint(pygame.mouse.get_pos()) and pygame.time.get_ticks() >= start_time + 500:
-            start_time = pygame.time.get_ticks()
-            player_1_right_button = pygame.draw.polygon(screen, "Blue", [
-                (player_rect.x + player_rect.width + w * 0.02, player_rect.centery - h * 0.02),
-                (player_rect.x + player_rect.width + w * 0.04, player_rect.centery),
-                (player_rect.x + player_rect.width + w * 0.02, player_rect.centery + h * 0.02)])
-            player1_colour += 1
+        self.player_right_button = pygame.draw.polygon(screen, "White", [
+            (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery - h * 0.02),
+            (self.player_rect.x + self.player_rect.width + w * 0.04, self.player_rect.centery),
+            (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery + h * 0.02)])
+        self.player_left_button = pygame.draw.polygon(screen, "White", [
+            (self.player_rect.x - w * 0.02, self.player_rect.centery - h * 0.02),
+            (self.player_rect.x - w * 0.04, self.player_rect.centery),
+            (self.player_rect.x - w * 0.02, self.player_rect.centery + h * 0.02)])
 
-            player_without_stick_image.fill(colours[player1_colour], special_flags=pygame.BLEND_RGB_ADD)
+    def blit_to_screen(self):
+        screen.blit(self.player_image, self.player_rect)
+        screen.blit(self.fake_player_image, self.fake_player_rect)
+        self.player_right_button = pygame.draw.polygon(screen, "White", [
+            (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery - h * 0.02),
+            (self.player_rect.x + self.player_rect.width + w * 0.04, self.player_rect.centery),
+            (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery + h * 0.02)])
+        self.player_left_button = pygame.draw.polygon(screen, "White", [
+            (self.player_rect.x - w * 0.02, self.player_rect.centery - h * 0.02),
+            (self.player_rect.x - w * 0.04, self.player_rect.centery),
+            (self.player_rect.x - w * 0.02, self.player_rect.centery + h * 0.02)])
 
-        elif player_1_left_button.collidepoint(pygame.mouse.get_pos()):
-            player_1_left_button = pygame.draw.polygon(screen, "Blue",
-                                                       [(player_rect.x - w * 0.02, player_rect.centery - h * 0.02),
-                                                        (player_rect.x - w * 0.04, player_rect.centery),
-                                                        (player_rect.x - w * 0.02, player_rect.centery + h * 0.02)])
-        elif player_2_right_button.collidepoint(pygame.mouse.get_pos()):
-            player_2_right_button = pygame.draw.polygon(screen, "Blue", [
-                (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery - h * 0.02),
-                (reverse_player_rect.x + reverse_player_rect.width + w * 0.04, reverse_player_rect.centery),
-                (reverse_player_rect.x + reverse_player_rect.width + w * 0.02, reverse_player_rect.centery + h * 0.02)])
-        elif player_2_left_button.collidepoint(pygame.mouse.get_pos()):
-            player_2_left_button = pygame.draw.polygon(screen, "Blue",
-                                                       [(reverse_player_rect.x - w * 0.02,
-                                                         reverse_player_rect.centery - h * 0.02),
-                                                        (reverse_player_rect.x - w * 0.04, reverse_player_rect.centery),
-                                                        (reverse_player_rect.x - w * 0.02,
-                                                         reverse_player_rect.centery + h * 0.02)])
+    def button_detection(self):
+        if pygame.mouse.get_pressed() == (True, False, False):
+            if self.player_right_button.collidepoint(
+                    pygame.mouse.get_pos()) and pygame.time.get_ticks() >= self.start_time + 200 and self.player_colour <= 7:
+                self.start_time = pygame.time.get_ticks()
+                player_1_right_button = pygame.draw.polygon(screen, "Blue", [
+                    (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery - h * 0.02),
+                    (self.player_rect.x + self.player_rect.width + w * 0.04, self.player_rect.centery),
+                    (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery + h * 0.02)])
+                self.player_colour += 1
+                self.fake_player_image.fill('white', special_flags=pygame.BLEND_RGB_SUB)
+                self.fake_player_image.fill(PlayerCustomisation.colours[self.player_colour],
+                                            special_flags=pygame.BLEND_RGB_ADD)
 
-    return player1_colour
+
+
+            elif self.player_left_button.collidepoint(
+                    pygame.mouse.get_pos()) and pygame.time.get_ticks() >= self.start_time + 200 and self.player_colour >= 1:
+                self.start_time = pygame.time.get_ticks()
+                self.player_left_button = pygame.draw.polygon(screen, "Blue",
+                                                              [(self.player_rect.x - w * 0.02,
+                                                                self.player_rect.centery - h * 0.02),
+                                                               (
+                                                               self.player_rect.x - w * 0.04, self.player_rect.centery),
+                                                               (self.player_rect.x - w * 0.02,
+                                                                self.player_rect.centery + h * 0.02)])
+                self.player_colour -= 1
+                self.fake_player_image.fill('white', special_flags=pygame.BLEND_RGB_SUB)
+
+                self.fake_player_image.fill(PlayerCustomisation.colours[self.player_colour],
+                                       special_flags=pygame.BLEND_RGB_ADD)
+
+    def update2(self):
+        self.blit_to_screen()
+        self.button_detection()
 
 
 class Players(pygame.sprite.Sprite):
@@ -480,6 +504,12 @@ while running:
         logo_tick, logo_frame, play, start_screen_on, char_options_on = start_screen(logo_frame, logo_tick, play,
                                                                                      start_screen_on, char_options_on)
     elif char_options_on:
-        player1_colour = char_options(player1_colour)
+        screen.fill("#38B6FF")
+        if made != 1:
+            ok1 = PlayerCustomisation("Player 1")
+            ok2 = PlayerCustomisation("Player 2")
+            made += 1
+        ok1.update2()
+        ok2.update2()
 
-    pygame.display.update()
+    pygame.display.flip()
