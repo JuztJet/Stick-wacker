@@ -7,7 +7,7 @@ import pygame
 
 pygame.init()
 w, h = pygame.display.get_desktop_sizes()[0]
-# w, h = 700, 400
+#w, h = 700, 400
 icon_image = pygame.image.load("Assets\Stick-Man\Stick Image.png")
 pygame.display.set_icon(icon_image)
 pygame.display.set_caption("Stick-Wacker", "Stick Or is it?")
@@ -20,7 +20,7 @@ print("Dont hit people with sticks")
 clock = pygame.time.Clock()
 
 # ---------------------------------------------------------------------------------------------------------------
-
+pygame.key.set_repeat(100)
 running = True
 reset = False
 play = False
@@ -45,14 +45,12 @@ logo_images = [pygame.transform.smoothscale(pygame.image.load(image).convert_alp
 
 play_image = pygame.transform.smoothscale(pygame.image.load("Assets\Start Up\Play.png"),
                                           (int(0.130 * w), int(0.1089 * h)))
-leaderboard_image = pygame.transform.smoothscale(pygame.image.load("Assets\Start Up\Leaderboard.png"),
-                                                 (int(0.130 * w), int(0.1089 * h)))
+
 
 # ---------------------------------------------------------------------------------------------------------------
 
 logo_images_rect = [image.get_rect(center=(w / 2, h * 0.25)) for image in logo_images]
 play_image_rect = play_image.get_rect(center=(w / 2, h * .70))
-leaderboard_image_rect = play_image.get_rect(center=(w / 2, h * .82))
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -63,29 +61,30 @@ def start_screen(logo_frame, logo_tick, play, start_screen_on, char_options_on):
         logo_frame, logo_tick = 0, 0
     screen.blit(logo_images[logo_frame], logo_images_rect[logo_frame])
     screen.blit(play_image, play_image_rect)
-    screen.blit(leaderboard_image, leaderboard_image_rect)
     logo_frame = logo_tick // 50
 
     logo_tick += 1
     if pygame.mouse.get_pressed() == (True, False, False):
         if play_image_rect.collidepoint(pygame.mouse.get_pos()):
-            play = True
-        elif leaderboard_image_rect.collidepoint(pygame.mouse.get_pos()):
             start_screen_on = False
             char_options_on = True
+
     return logo_tick, logo_frame, play, start_screen_on, char_options_on
 
 
 class PlayerCustomisation:
     colours = ['Black', "Red", "Orange", "Yellow", "Green", 'Blue', 'Indigo', 'Violet', 'White']
     screen.fill("#38B6FF")
-
+    play_image_rect = play_image.get_rect(center=(w / 2, h * .82))
     def __init__(self, name):
-        print(2)
         self.start_time = 0
         self.player_colour = 0
         self.name = name
+        self.valid = False
         self.text = ''
+        self.current_colour = 'Black'
+        self.real_text = player_font.render(self.text, False, "Black")
+
         if self.name == "Player 1":
             self.player_image = pygame.transform.smoothscale(
                 pygame.image.load("Assets/Stick-Man/Stick-Man-With-Stick.png").convert_alpha(),
@@ -95,7 +94,13 @@ class PlayerCustomisation:
                 (1.5 * (w * 0.1158), 1.5 * (h * 0.2604)))
             self.fake_player_rect = self.fake_player_image.get_rect(center=(w * 0.15, h / 2))
             self.player_rect = self.player_image.get_rect(center=(w * 0.15, h / 2))
-            self.textbox = pygame.Rect((self.player_rect.x, self.player_rect.y + w*0.1), (50, 50))
+            self.textbox = pygame.Rect((0 + w * 0.01, self.player_rect.y - h * 0.1), (self.player_rect.width, 50))
+            self.real_text_rect = pygame.Rect(
+                (self.textbox.centerx, self.player_rect.y - h * 0.1 + self.real_text.get_height() / 2),
+                (self.player_rect.width, 50))
+
+
+
         else:
             self.player_image = pygame.transform.flip(pygame.transform.smoothscale(
                 pygame.image.load("Assets/Stick-Man/Stick-Man-With-Stick.png").convert_alpha(),
@@ -105,6 +110,13 @@ class PlayerCustomisation:
                 (1.5 * (w * 0.1158), 1.5 * (h * 0.2604))), True, False)
             self.fake_player_rect = self.fake_player_image.get_rect(center=(w * 0.85, h / 2))
             self.player_rect = self.player_image.get_rect(center=(w * 0.85, h / 2))
+
+            self.textbox = pygame.Rect((w - w * 0.01 - self.player_rect.width, self.player_rect.y - h * 0.1),
+                                       (self.player_rect.width, 50))
+            self.real_text_rect = pygame.Rect(
+                (self.textbox.centerx, self.player_rect.y - h * 0.1 + self.real_text.get_height() / 2),
+                (self.player_rect.width, 50))
+
 
         self.player_right_button = pygame.draw.polygon(screen, "White", [
             (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery - h * 0.02),
@@ -126,6 +138,15 @@ class PlayerCustomisation:
             (self.player_rect.x - w * 0.02, self.player_rect.centery - h * 0.02),
             (self.player_rect.x - w * 0.04, self.player_rect.centery),
             (self.player_rect.x - w * 0.02, self.player_rect.centery + h * 0.02)])
+        pygame.draw.rect(screen, "#F0EDE5", self.textbox)
+        #pygame.draw.rect(screen, "Blue", self.real_text_rect)
+        screen.blit(self.real_text, self.real_text_rect)
+        screen.blit(play_image, PlayerCustomisation.play_image_rect)
+    def play_button(self):
+        if pygame.mouse.get_pressed() == (True, False, False):
+            if PlayerCustomisation.play_image_rect.collidepoint(pygame.mouse.get_pos()):
+                play = True
+                return play
 
     def button_detection(self):
         if pygame.mouse.get_pressed() == (True, False, False):
@@ -137,9 +158,11 @@ class PlayerCustomisation:
                     (self.player_rect.x + self.player_rect.width + w * 0.04, self.player_rect.centery),
                     (self.player_rect.x + self.player_rect.width + w * 0.02, self.player_rect.centery + h * 0.02)])
                 self.player_colour += 1
+                self.current_colour = PlayerCustomisation.colours[self.player_colour]
                 self.fake_player_image.fill('white', special_flags=pygame.BLEND_RGB_SUB)
                 self.fake_player_image.fill(PlayerCustomisation.colours[self.player_colour],
                                             special_flags=pygame.BLEND_RGB_ADD)
+                print(self.current_colour)
 
 
 
@@ -150,25 +173,51 @@ class PlayerCustomisation:
                                                               [(self.player_rect.x - w * 0.02,
                                                                 self.player_rect.centery - h * 0.02),
                                                                (
-                                                               self.player_rect.x - w * 0.04, self.player_rect.centery),
+                                                                   self.player_rect.x - w * 0.04,
+                                                                   self.player_rect.centery),
                                                                (self.player_rect.x - w * 0.02,
                                                                 self.player_rect.centery + h * 0.02)])
                 self.player_colour -= 1
                 self.fake_player_image.fill('white', special_flags=pygame.BLEND_RGB_SUB)
 
                 self.fake_player_image.fill(PlayerCustomisation.colours[self.player_colour],
-                                       special_flags=pygame.BLEND_RGB_ADD)
+                                            special_flags=pygame.BLEND_RGB_ADD)
+                self.current_colour = PlayerCustomisation.colours[self.player_colour]
+
+    def text_click_detection(self):
+
+        if ok1.textbox.collidepoint(pygame.mouse.get_pos()):
+            if pygame.mouse.get_pressed() == (True, False, False):
+                ok1.valid = True
+                ok2.valid = False
+        elif ok2.textbox.collidepoint(pygame.mouse.get_pos()):
+            if pygame.mouse.get_pressed() == (True, False, False):
+                ok2.valid = True
+                ok1.valid = False
+    def text_input(self, realtext):
+        key = pygame.key.get_pressed()
+        if key[pygame.K_BACKSPACE]:
+            self.text = self.text[:-1]
+        elif len(self.text) < 22:
+            if type(realtext)== str:
+                self.text += self.text.join(filter(None, [realtext]))
+        self.real_text = player_font.render(self.text, False, "Black")
+        self.real_text_rect.width = self.real_text.get_width()
+        self.real_text_rect.centerx = self.textbox.centerx
 
     def update2(self):
         self.blit_to_screen()
         self.button_detection()
+        self.text_click_detection()
+        play = self.play_button()
+        return play
 
 
 class Players(pygame.sprite.Sprite):
     score = player_font.render('{}-{}'.format(score_numbers[0], score_numbers[1]), False, "Black")
     score_rect = score.get_rect(center=(w / 2, h * .9))
 
-    def __init__(self, name, pos):
+    def __init__(self, name, pos, nickname, colour):
 
         super().__init__()
         self.name = name
@@ -184,6 +233,8 @@ class Players(pygame.sprite.Sprite):
              'Assets/Stick-Man/Stick-Man Walking/Stick-Man Walking/img3.png',
              'Assets/Stick-Man/Stick-Man Walking/Stick-Man Walking/img4.png',
              'Assets/Stick-Man/Stick-Man Walking/Stick-Man Walking/img5.png', ]]
+        for i in self.walking_frames:
+            i.fill(colour,special_flags=pygame.BLEND_RGB_ADD)
         self.reverse_walking_frames = [pygame.transform.flip(
             (pygame.transform.smoothscale(pygame.image.load(image).convert_alpha(), (w * 0.1257, h * 0.215))), True,
             False) for image in
@@ -193,6 +244,8 @@ class Players(pygame.sprite.Sprite):
              'Assets/Stick-Man/Stick-Man Walking/Stick-Man Walking/img3.png',
              'Assets/Stick-Man/Stick-Man Walking/Stick-Man Walking/img4.png',
              'Assets/Stick-Man/Stick-Man Walking/Stick-Man Walking/img5.png', ]]
+        for i in self.reverse_walking_frames:
+            i.fill(colour,special_flags=pygame.BLEND_RGB_ADD)
         self.hitting_frames = [
             pygame.transform.smoothscale(pygame.image.load(image).convert_alpha(), (w * 0.1257, h * 0.215)) for image in
             ['Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img0.png',
@@ -201,6 +254,8 @@ class Players(pygame.sprite.Sprite):
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img3.png',
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img4.png',
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img5.png']]
+        for i in self.hitting_frames:
+            i.fill(colour,special_flags=pygame.BLEND_RGB_ADD)
         self.reverse_hitting_frames = [pygame.transform.flip(
             (pygame.transform.smoothscale(pygame.image.load(image).convert_alpha(), (w * 0.1257, h * 0.215))), True,
             False) for image in
@@ -210,8 +265,10 @@ class Players(pygame.sprite.Sprite):
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img3.png',
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img4.png',
              'Assets/Stick-Man/Stick Man Wacking/Stick-Man Wacking/img5.png']]
+        for i in self.reverse_hitting_frames:
+            i.fill(colour,special_flags=pygame.BLEND_RGB_ADD)
 
-        self.player_text = player_font.render(self.name, False, "#abdbe3")
+        self.player_text = player_font.render(nickname, False, "#abdbe3")
         self.attack_time = 0
         if self.name == "Player 1":
             self.image = self.walking_frames[self.walking_frame_num]
@@ -264,7 +321,6 @@ class Players(pygame.sprite.Sprite):
     def gravity(self):
         gravity = 0.00057 * h
         if self.rect.y < h * 0.58:
-            pass
             self.rect.y += (gravity * speed * dt)
             self.text_health_control['player_text_rect'].y = self.rect.y - int(h * 0.115)
             self.text_health_control['player_health_bar_rect'].y = self.rect.y - int(h * 0.081)
@@ -479,22 +535,38 @@ class NaturalObjects:
 
 sky = NaturalObjects("Sky", w, h, (0, 0), 'Assets/Natural Objects/sky.JPG')
 grass = NaturalObjects("Grass", w, h, (0, h * 0.8), 'Assets/Natural Objects/grass.png')
-player1 = Players("Player 1", (w * .03, h * 0.8 - 2))
-player2 = Players("Player 2", (w * .97, h * 0.8 - 2))
+
 
 while running:
-    pygame.event.set_allowed([pygame.QUIT])
+    # pygame.event.set_allowed([pygame.QUIT])
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    if reset:
-        player1 = Players("Player 1", (w * .03, h * 0.8 - 2))
-        player2 = Players("Player 2", (w * .97, h * 0.8 - 2))
-        reset = False
+        if char_options_on:
+            if 'ok1' in globals():
 
+                if ok1.valid:
+                    if event.type == pygame.TEXTINPUT:
+                        ok1.text_input(event.text)
+                    elif pygame.key.get_focused():
+                        ok1.text_input(None)
+            if 'ok2' in globals():
+                if ok2.valid:
+                    if event.type == pygame.TEXTINPUT:
+                        ok2.text_input(event.text)
+                    elif pygame.key.get_focused():
+                        ok2.text_input(None)
     speed = 1000
     dt = clock.tick(50) / 1000
-    if play:
+    if reset:
+        player1 = Players("Player 1", (w * .03, h * 0.8 - 2), ok1.text, ok1.current_colour)
+        player2 = Players("Player 2", (w * .97, h * 0.8 - 2), ok2.text, ok2.current_colour)
+        reset = False
+        play = True
+        char_options_on = False
+
+
+    elif play:
         sky.blit_Nat_Obj()
         grass.blit_Nat_Obj()
         reset = player1.update(reset)
@@ -509,7 +581,7 @@ while running:
             ok1 = PlayerCustomisation("Player 1")
             ok2 = PlayerCustomisation("Player 2")
             made += 1
-        ok1.update2()
-        ok2.update2()
+        reset = ok1.update2()
+        reset = ok2.update2()
 
     pygame.display.flip()
