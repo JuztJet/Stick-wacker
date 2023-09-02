@@ -220,6 +220,8 @@ class Players(pygame.sprite.Sprite):
     def __init__(self, name, pos, nickname, colour):
 
         super().__init__()
+        if nickname == '':
+            nickname = name
         self.name = name
         self.walking_frame_num = 0
         self.attack_frame_num = 0
