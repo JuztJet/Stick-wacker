@@ -26,7 +26,7 @@ view = False
 
 root = tk.Tk()                         #Creating root window
 root.resizable(False,False)
-root.state("zoomed")
+root.state("normal")
 root.title("Food ordering menu system")
 root.configure(bg="#ACAD71")
 
@@ -59,8 +59,32 @@ def wipe():
     wipeDataBase['state']="disabled"
 
     connection = sqlite3.connect('test3ForOrderingSystem.db')
-
     cursor = connection.cursor()
+    cursor.execute("""CREATE TABLE IF NOT EXISTS SAUSAGES (
+                                sausages TEXT,
+                                time TEXT
+                                
+                            );""")
+    
+    cursor.execute("""CREATE TABLE IF NOT EXISTS CHIPS (
+                                chips TEXT,
+                                time TEXT
+                                
+                            );""")
+    
+    cursor.execute("""CREATE TABLE IF NOT EXISTS PIZZA (
+                                pizza TEXT,
+                                time TEXT
+                                
+                            );""")
+    
+    cursor.execute("""CREATE TABLE IF NOT EXISTS BURGER (
+                                burger TEXT,
+                                time TEXT
+                                
+                            );""")
+
+    
     cursor.execute("DELETE FROM PIZZA")
 
     connection.commit()
@@ -152,6 +176,13 @@ def order():
         connection = sqlite3.connect('test3ForOrderingSystem.db')
 
         cursor = connection.cursor()
+        
+        cursor.execute("""CREATE TABLE IF NOT EXISTS PIZZA (
+                                    pizza TEXT,
+                                    time TEXT
+                                    
+                                );""")
+        
 
         cursor.execute("INSERT INTO PIZZA VALUES(:pizza, :time)",
 
@@ -176,6 +207,12 @@ def order():
 
         cursor = connection.cursor()
 
+        cursor.execute("""CREATE TABLE IF NOT EXISTS BURGER (
+                                    burger TEXT,
+                                    time TEXT
+                                    
+                                );""")
+        
         cursor.execute("INSERT INTO BURGER VALUES(:burger, :time)",
 
                         {
@@ -194,6 +231,12 @@ def order():
         connection = sqlite3.connect('test3ForOrderingSystem.db')
 
         cursor = connection.cursor()
+        
+        cursor.execute("""CREATE TABLE IF NOT EXISTS CHIPS (
+                                    chips TEXT,
+                                    time TEXT
+                                    
+                                );""")
 
         cursor.execute("INSERT INTO CHIPS VALUES(:chips, :time)",
 
@@ -217,6 +260,12 @@ def order():
 
         cursor = connection.cursor()
 
+        cursor.execute("""CREATE TABLE IF NOT EXISTS SAUSAGES (
+                                    sausages TEXT,
+                                    time TEXT
+                                    
+                                );""")
+        
         cursor.execute("INSERT INTO SAUSAGES VALUES(:sausages, :time)",
 
                         {
